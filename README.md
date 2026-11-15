@@ -80,4 +80,6 @@ Once you are inside the ExifTool directory, execute the tool by typing `exiftool
 
 
 ExifTool will analyze the selected image and display all available metadata in the Command Prompt window.
+
+
 <img width="942" height="486" alt="exiftool run" src="https://github.com/user-attachments/assets/8c08a6d6-911c-4d93-a560-cb390a9dc00d" />
