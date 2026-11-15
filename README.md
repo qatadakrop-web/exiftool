@@ -83,3 +83,8 @@ ExifTool will analyze the selected image and display all available metadata in t
 
 
 <img width="942" height="486" alt="exiftool run" src="https://github.com/user-attachments/assets/8c08a6d6-911c-4d93-a560-cb390a9dc00d" />
+
+
+**Note:** When running ExifTool with only the image path, the tool automatically extracts and displays all available metadata without requiring any additional parameters or specific tags. This may include camera information, date and time, GPS coordinates, image properties, camera settings, and software information, depending on the metadata embedded in the image.
+
+**Important Note:** Some messaging applications, such as WhatsApp, may remove or modify image metadata (EXIF), including GPS coordinates, when images are sent as regular photos. However, sending the image as a document or file generally preserves the original metadata, including GPS information, as long as the file is not modified or reprocessed before sending.
