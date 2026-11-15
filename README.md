@@ -68,7 +68,7 @@ By analyzing image metadata, investigators can:
 
 ---
 
- Running ExifTool Using CMD
+ ###  Running ExifTool Using CMD
 
 First, open **Command Prompt (CMD)** on Windows.
 
@@ -88,3 +88,45 @@ ExifTool will analyze the selected image and display all available metadata in t
 **Note:** When running ExifTool with only the image path, the tool automatically extracts and displays all available metadata without requiring any additional parameters or specific tags. This may include camera information, date and time, GPS coordinates, image properties, camera settings, and software information, depending on the metadata embedded in the image.
 
 **Important Note:** Some messaging applications, such as WhatsApp, may remove or modify image metadata (EXIF), including GPS coordinates, when images are sent as regular photos. However, sending the image as a document or file generally preserves the original metadata, including GPS information, as long as the file is not modified or reprocessed before sending.
+
+
+## 5. Extracting Specific Metadata
+
+In addition to extracting all available metadata, ExifTool allows us to retrieve specific information by using dedicated tags.
+
+This is useful when we want to focus on a particular type of information during an investigation.
+
+### 1. Extract GPS Information
+
+To display GPS-related metadata, including latitude, longitude, and altitude:
+
+```bash
+exiftool -GPS:all image.jpg
+```
+
+### 2. Extract Camera Information
+
+To identify the camera manufacturer and device model:
+
+```bash
+exiftool -Make -Model image.jpg
+```
+
+### 3. Extract Date and Time
+
+To display the recorded image capture date and time:
+
+```bash
+exiftool -DateTimeOriginal image.jpg
+```
+
+
+### 4. Extract Image Dimensions
+
+To display the image width and height:
+
+```bash
+exiftool -ImageWidth -ImageHeight image.jpg
+```
+
+**Note:** These commands extract only the specified metadata fields. If a particular field is not available in the image, ExifTool may return no value for that field.
