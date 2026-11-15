@@ -130,3 +130,53 @@ exiftool -ImageWidth -ImageHeight image.jpg
 ```
 
 **Note:** These commands extract only the specified metadata fields. If a particular field is not available in the image, ExifTool may return no value for that field.
+
+
+### Understanding the Difference Between Extraction and Modification Syntax
+
+The main difference between extraction and modification commands in ExifTool is the use of the assignment operator (`=`).
+
+- **Extraction:** Uses `-TAG` to read and display a specific metadata field.
+- **Modification:** Uses `-TAG="VALUE"` to assign a new value to a metadata field.
+- **Removal:** Uses `-TAG=` to delete a specific metadata field.
+
+In simple terms:
+- Extraction = Read
+- Modification = Write
+- Removal = Delete
+
+
+### Examples of Metadata Modification and Removal
+
+**1. Modification Example**
+
+Change the Artist metadata field to "John":
+
+```cmd
+exiftool -Artist="John" image.jpg
+```
+
+**2. Adding Metadata Example**
+
+Add a Software metadata field with the value "Photoshop":
+
+```cmd
+exiftool -Software="Photoshop" image.jpg
+```
+
+**3. Removal Example**
+
+Remove all GPS metadata from the image:
+
+```cmd
+exiftool -GPS:all= image.jpg
+```
+
+
+## Real-World Scenario
+
+A technology company is developing a new electronic product as part of a confidential project. One of the company's engineers takes a photograph of an early prototype of the product. A few days later, the photograph appears on a public online platform without the company's authorization.
+
+The company suspects that the image may have been shared without permission and decides to investigate its origin. A digital forensics team is assigned to examine the original photograph using **ExifTool**. The investigation focuses on extracting and analyzing available metadata, including the camera make and model, date and time, GPS coordinates, and any software used to edit the image.
+
+The objective is to uncover useful clues about where and when the photograph was taken and determine whether the metadata can help support the investigation.
