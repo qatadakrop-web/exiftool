@@ -68,7 +68,7 @@ By analyzing image metadata, investigators can:
 
 ---
 
-### Step 1 – Running ExifTool Using CMD
+ Running ExifTool Using CMD
 
 First, open **Command Prompt (CMD)** on Windows.
 
