@@ -12,7 +12,10 @@ The objective is to uncover useful clues about where and when the photograph was
 
 
 
+ #### ZF Tool (Zaytoonah Forensic Tool)
+ a lightweight, client-side digital forensics utility designed for privacy analysis and metadata inspection.
 
+As a secure client-side web application developed for digital investigations, ZF Tool processes everything locally inside the browser with zero server-side uploads. Powered by the reliable ExifReader JavaScript library, the tool enables investigators and security enthusiasts to seamlessly extract EXIF data, timestamps, device profiles, and embedded raw GPS coordinates directly from images with complete data privacy.
 
 
 https://starlit-gumdrop-9155da.netlify.app/
