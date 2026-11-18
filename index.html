@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZF Tool | Zaytoonah Forensic Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exifreader@4.23.3/dist/exif-reader.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-cyan-500/30">
+
+    <!-- Minimal Header -->
+    <header class="w-full py-10 px-4 text-center">
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
+            ZF <span class="text-cyan-400">Tool</span>
+        </h1>
+        <p class="text-xs sm:text-sm font-mono uppercase tracking-[0.2em] text-slate-400 mt-2">
+            Zaytoonah Forensic Tool
+        </p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-3xl mx-auto px-4 flex-1 flex flex-col justify-center pb-12">
+
+        <!-- Notification Banner -->
+        <div id="toastMsg" class="hidden mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs sm:text-sm font-mono text-center"></div>
+
+        <!-- Upload / Drag & Drop Zone -->
+        <section id="uploadSection">
+            <div id="dropZone" class="cursor-pointer rounded-3xl border-2 border-dashed border-slate-700 hover:border-cyan-400 bg-slate-900/50 hover:bg-slate-900 transition-all p-10 sm:p-16 text-center flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-2xl bg-slate-800/90 border border-slate-700 flex items-center justify-center mb-5 text-cyan-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                </div>
+                <p class="text-lg sm:text-xl font-semibold text-white">
+                    Drag & drop your image here
+                </p>
+                <p class="text-xs sm:text-sm text-slate-400 mt-2">
+                    or click to browse files (JPEG, JPG, PNG, HEIC, WEBP)
+                </p>
+                <input type="file" id="fileInput" accept="image/*,.heic,.heif" class="hidden">
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="hidden space-y-5">
+
+            <!-- File Summary Bar -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <img id="imagePreview" alt="Preview" class="w-12 h-12 rounded-xl object-cover bg-slate-950 border border-slate-800 shrink-0">
+                    <div class="min-w-0">
+                        <p id="fileName" class="text-sm font-semibold text-white truncate">image.jpg</p>
+                        <p id="fileInfo" class="text-xs font-mono text-slate-400 mt-0.5">0 KB</p>
+                    </div>
+                </div>
+                <button id="resetBtn" type="button" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition shrink-0">
+                    Scan Another
+                </button>
+            </div>
+
+            <!-- Visual GPS Status Banner (Forensic Challenge Mode - Raw DMS Coordinates Only) -->
+            <div id="gpsFoundBanner" class="hidden rounded-2xl bg-rose-950/40 border border-rose-500/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="inline-flex items-center gap-2 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-mono font-bold px-3.5 py-1.5 rounded-full">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                        <span>[!] GPS METADATA DETECTED</span>
+                    </span>
+                </div>
+                <span id="gpsRawPreview" class="text-xs sm:text-sm font-mono text-rose-200 select-all"></span>
+            </div>
+
+            <div id="gpsNotFoundBanner" class="hidden rounded-2xl bg-emerald-950/30 border border-emerald-500/30 p-4 flex items-center justify-between">
+                <span class="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-bold px-3.5 py-1.5 rounded-full">
+                    [+] NO GPS METADATA FOUND
+                </span>
+                <span class="text-xs font-mono text-slate-400">Clean / Stripped</span>
+            </div>
+
+            <!-- Metadata Table -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="bg-slate-900 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between gap-3">
+                    <span id="tagCount" class="text-xs font-mono text-slate-400">0 tags</span>
+                    <input type="text" id="filterInput" placeholder="Filter tags..." class="bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-200 placeholder-slate-600 focus:outline-none w-40 sm:w-52">
+                </div>
+
+                <div class="max-h-96 overflow-y-auto">
+                    <table class="w-full text-left border-collapse font-mono text-xs sm:text-sm">
+                        <tbody id="metadataTable" class="divide-y divide-slate-800/70"></tbody>
+                    </table>
+                    <div id="emptyState" class="hidden p-10 text-center text-xs font-mono text-slate-500">
+                        No EXIF metadata found in this file.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="py-6 px-4 text-center">
+        <p class="text-xs font-mono text-slate-500">
+            100% Client-Side Processing • No images are uploaded
+        </p>
+    </footer>
+
+    <script>
+        // --- Self-Contained Binary EXIF & GPS Parser (Zero External Dependencies) ---
+        const ExifParser = (function() {
+            const EXIF_TAGS = {
+                0x010F: "Make",
+                0x0110: "Model",
+                0x0112: "Orientation",
+                0x011A: "XResolution",
+                0x011B: "YResolution",
+                0x0131: "Software",
+                0x0132: "ModifyDate",
+                0x829A: "ExposureTime",
+                0x829D: "FNumber",
+                0x8827: "ISO",
+                0x9003: "DateTimeOriginal",
+                0x9004: "CreateDate",
+                0x920A: "FocalLength",
+                0xA002: "PixelXDimension",
+                0xA003: "PixelYDimension",
+                0xA434: "LensID"
+            };
+
+            const GPS_TAGS = {
+                0x0001: "GPSLatitudeRef",
+                0x0002: "GPSLatitude",
+                0x0003: "GPSLongitudeRef",
+                0x0004: "GPSLongitude",
+                0x0005: "GPSAltitudeRef",
+                0x0006: "GPSAltitude",
+                0x0007: "GPSTimeStamp",
+                0x001D: "GPSDateStamp"
+            };
+
+            function readString(view, offset, length) {
+                let out = "";
+                for (let i = 0; i < length; i++) {
+                    if (offset + i >= view.byteLength) break;
+                    const c = view.getUint8(offset + i);
+                    if (c === 0) break;
+                    out += String.fromCharCode(c);
+                }
+                return out.trim();
+            }
+
+            function readTagValue(view, tiffStart, entryOffset, littleEndian) {
+                const type = view.getUint16(entryOffset + 2, littleEndian);
+                const count = view.getUint32(entryOffset + 4, littleEndian);
+                const typeSizes = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 };
+                const unitSize = typeSizes[type] || 1;
+                const totalBytes = count * unitSize;
+                const valueOffset = totalBytes <= 4
+                    ? entryOffset + 8
+                    : tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+
+                if (valueOffset < 0 || valueOffset + totalBytes > view.byteLength) return null;
+
+                if (type === 2) {
+                    return readString(view, valueOffset, count);
+                }
+                if (type === 3) {
+                    if (count === 1) return view.getUint16(valueOffset, littleEndian);
+                    const arr = [];
+                    for (let i = 0; i < count; i++) arr.push(view.getUint16(valueOffset + i * 2, littleEndian));
+                    return arr;
+                }
+                if (type === 4) {
+                    if (count === 1) return view.getUint32(valueOffset, littleEndian);
+                    const arr = [];
+                    for (let i = 0; i < count; i++) arr.push(view.getUint32(valueOffset + i * 4, littleEndian));
+                    return arr;
+                }
+                if (type === 5) {
+                    const arr = [];
+                    for (let i = 0; i < count; i++) {
+                        const num = view.getUint32(valueOffset + i * 8, littleEndian);
+                        const den = view.getUint32(valueOffset + i * 8 + 4, littleEndian);
+                        arr.push(den ? num / den : 0);
+                    }
+                    return count === 1 ? arr[0] : arr;
+                }
+                return null;
+            }
+
+            function readIFD(view, tiffStart, dirOffset, littleEndian, tagMap, result) {
+                if (dirOffset < 0 || dirOffset + 2 > view.byteLength) return {};
+                const entries = view.getUint16(dirOffset, littleEndian);
+                const pointers = {};
+
+                for (let i = 0; i < entries; i++) {
+                    const entryOffset = dirOffset + 2 + i * 12;
+                    if (entryOffset + 12 > view.byteLength) break;
+                    const tagId = view.getUint16(entryOffset, littleEndian);
+
+                    if (tagId === 0x8769) {
+                        pointers.exif = tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+                    } else if (tagId === 0x8825) {
+                        pointers.gps = tiffStart + view.getUint32(entryOffset + 8, littleEndian);
+                    } else if (tagMap[tagId]) {
+                        const val = readTagValue(view, tiffStart, entryOffset, littleEndian);
+                        if (val !== null && val !== "") {
+                            result[tagMap[tagId]] = val;
+                        }
+                    }
+                }
+                return pointers;
+            }
+
+            function parseTIFF(view, tiffStart) {
+                if (tiffStart + 8 > view.byteLength) return {};
+                const endianMarker = view.getUint16(tiffStart, false);
+                const littleEndian = endianMarker === 0x4949;
+                if (!littleEndian && endianMarker !== 0x4D4D) return {};
+
+                const firstIFD = tiffStart + view.getUint32(tiffStart + 4, littleEndian);
+                const result = {};
+                const p0 = readIFD(view, tiffStart, firstIFD, littleEndian, EXIF_TAGS, result);
+                if (p0.exif) {
+                    const pExif = readIFD(view, tiffStart, p0.exif, littleEndian, EXIF_TAGS, result);
+                    if (pExif.gps) readIFD(view, tiffStart, pExif.gps, littleEndian, GPS_TAGS, result);
+                }
+                if (p0.gps) {
+                    readIFD(view, tiffStart, p0.gps, littleEndian, GPS_TAGS, result);
+                }
+                return result;
+            }
+
+            function parseBuffer(buffer) {
+                const view = new DataView(buffer);
+                if (view.byteLength < 12) return {};
+
+                // 1. Check JPEG APP1 Exif Header
+                if (view.getUint16(0, false) === 0xFFD8) {
+                    let offset = 2;
+                    while (offset + 4 < view.byteLength) {
+                        const marker = view.getUint16(offset, false);
+                        if (marker === 0xFFE1) {
+                            const header = readString(view, offset + 4, 4);
+                            if (header === "Exif") {
+                                return parseTIFF(view, offset + 10);
+                            }
+                        }
+                        if ((marker & 0xFF00) !== 0xFF00) break;
+                        const segLen = view.getUint16(offset + 2, false);
+                        if (segLen < 2) break;
+                        offset += 2 + segLen;
+                    }
+                }
+
+                // 2. Full-file scan for embedded "Exif\0\0" block (supports HEIC / PNG / WEBP / TIFF)
+                const bytes = new Uint8Array(buffer);
+                for (let i = 0; i < bytes.length - 14; i++) {
+                    if (
+                        bytes[i] === 0x45 &&
+                        bytes[i + 1] === 0x78 &&
+                        bytes[i + 2] === 0x69 &&
+                        bytes[i + 3] === 0x66 &&
+                        bytes[i + 4] === 0x00 &&
+                        bytes[i + 5] === 0x00
+                    ) {
+                        const parsed = parseTIFF(view, i + 6);
+                        if (Object.keys(parsed).length > 0) return parsed;
+                    }
+                }
+
+                return {};
+            }
+
+            return { parseBuffer };
+        })();
+
+        // --- UI & Forensic Logic ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const toastMsg = document.getElementById('toastMsg');
+
+        const imagePreview = document.getElementById('imagePreview');
+        const fileName = document.getElementById('fileName');
+        const fileInfo = document.getElementById('fileInfo');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const gpsFoundBanner = document.getElementById('gpsFoundBanner');
+        const gpsNotFoundBanner = document.getElementById('gpsNotFoundBanner');
+        const gpsRawPreview = document.getElementById('gpsRawPreview');
+
+        const metadataTable = document.getElementById('metadataTable');
+        const emptyState = document.getElementById('emptyState');
+        const tagCount = document.getElementById('tagCount');
+        const filterInput = document.getElementById('filterInput');
+
+        let currentTags = [];
+
+        function showToast(msg) {
+            toastMsg.textContent = msg;
+            toastMsg.classList.remove('hidden');
+            setTimeout(() => toastMsg.classList.add('hidden'), 3500);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDMS(dmsArray, ref) {
+            if (!Array.isArray(dmsArray) || dmsArray.length < 3) return null;
+            const deg = Math.floor(dmsArray[0]);
+            const min = Math.floor(dmsArray[1]);
+            const sec = Number(dmsArray[2]).toFixed(2);
+            const direction = (ref || '').toString().trim();
+            return `${deg} deg ${min}' ${sec}" ${direction}`.trim();
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-cyan-400', 'bg-slate-900');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-cyan-400', 'bg-slate-900');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-cyan-400', 'bg-slate-900');
+            if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                analyzeImage(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                analyzeImage(e.target.files[0]);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            filterInput.value = '';
+            currentTags = [];
+            resultsSection.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+        });
+
+        filterInput.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            const filtered = currentTags.filter(item =>
+                item.key.toLowerCase().includes(q) || item.value.toLowerCase().includes(q)
+            );
+            renderTable(filtered);
+        });
+
+        function renderTable(rows) {
+            metadataTable.innerHTML = '';
+            if (rows.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = row.highlight ? 'bg-rose-950/25 hover:bg-rose-950/40' : 'hover:bg-slate-800/40';
+
+                const tdKey = document.createElement('td');
+                tdKey.className = `py-2.5 px-4 font-medium w-2/5 border-r border-slate-800/70 ${row.highlight ? 'text-rose-400 font-semibold' : 'text-slate-400'}`;
+                tdKey.textContent = row.key;
+
+                const tdVal = document.createElement('td');
+                tdVal.className = `py-2.5 px-4 break-all select-all ${row.highlight ? 'text-rose-200 font-semibold' : 'text-cyan-300'}`;
+                tdVal.textContent = row.value;
+
+                tr.appendChild(tdKey);
+                tr.appendChild(tdVal);
+                metadataTable.appendChild(tr);
+            });
+        }
+
+        function analyzeImage(file) {
+            const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|heic|heif|webp|tiff)$/i.test(file.name);
+            if (!isImage) {
+                showToast('Please select a valid image file.');
+                return;
+            }
+
+            const ext = file.name.split('.').pop().toUpperCase();
+            fileName.textContent = file.name;
+            fileInfo.textContent = `${formatBytes(file.size)} • ${ext}`;
+
+            const previewUrl = URL.createObjectURL(file);
+            imagePreview.src = previewUrl;
+            imagePreview.onerror = () => {
+                imagePreview.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2322d3ee'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E";
+            };
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const buffer = evt.target.result;
+                    let parsed = {};
+
+                    // Use ExifReader if loaded, otherwise fallback to full-buffer binary parser
+                    if (typeof ExifReader !== 'undefined') {
+                        try {
+                            const tags = ExifReader.load(buffer, { expanded: false });
+
+                            const latTag = tags['GPSLatitude'];
+                            const lonTag = tags['GPSLongitude'];
+                            
+                            if (latTag) {
+                                if (Array.isArray(latTag.value) && latTag.value.length >= 3) {
+                                    parsed.GPSLatitude = latTag.value.map(v => Array.isArray(v) ? (v[1] ? v[0] / v[1] : 0) : Number(v));
+                                } else if (latTag.description !== undefined) {
+                                    parsed.GPSLatitude = latTag.description;
+                                } else if (latTag.value !== undefined) {
+                                    parsed.GPSLatitude = latTag.value;
+                                }
+                            }
+                            if (lonTag) {
+                                if (Array.isArray(lonTag.value) && lonTag.value.length >= 3) {
+                                    parsed.GPSLongitude = lonTag.value.map(v => Array.isArray(v) ? (v[1] ? v[0] / v[1] : 0) : Number(v));
+                                } else if (lonTag.description !== undefined) {
+                                    parsed.GPSLongitude = lonTag.description;
+                                } else if (lonTag.value !== undefined) {
+                                    parsed.GPSLongitude = lonTag.value;
+                                }
+                            }
+                            if (tags['GPSLatitudeRef']) {
+                                const r = Array.isArray(tags['GPSLatitudeRef'].value) ? tags['GPSLatitudeRef'].value[0] : (tags['GPSLatitudeRef'].description || tags['GPSLatitudeRef'].value);
+                                parsed.GPSLatitudeRef = String(r || '').trim().charAt(0).toUpperCase();
+                            }
+                            if (tags['GPSLongitudeRef']) {
+                                const r = Array.isArray(tags['GPSLongitudeRef'].value) ? tags['GPSLongitudeRef'].value[0] : (tags['GPSLongitudeRef'].description || tags['GPSLongitudeRef'].value);
+                                parsed.GPSLongitudeRef = String(r || '').trim().charAt(0).toUpperCase();
+                            }
+
+                            // Extract ALL available metadata tags dynamically
+                            Object.keys(tags).forEach(key => {
+                                if (['MakerNote', 'UserComment', 'Thumbnail'].includes(key)) return;
+                                if (parsed[key] !== undefined) return;
+                                const tagObj = tags[key];
+                                if (tagObj && tagObj.description !== undefined && tagObj.description !== '') {
+                                    const desc = String(tagObj.description).trim();
+                                    if (!desc.startsWith('[object') && desc.length < 250) {
+                                        parsed[key] = desc;
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            console.warn('ExifReader fallback triggered:', e);
+                        }
+                    }
+
+                    // Always merge binary parser results to guarantee GPS extraction
+                    const binaryParsed = ExifParser.parseBuffer(buffer);
+                    if (binaryParsed.GPSLatitude && !Array.isArray(parsed.GPSLatitude)) parsed.GPSLatitude = binaryParsed.GPSLatitude;
+                    if (binaryParsed.GPSLongitude && !Array.isArray(parsed.GPSLongitude)) parsed.GPSLongitude = binaryParsed.GPSLongitude;
+                    if (binaryParsed.GPSLatitudeRef && !parsed.GPSLatitudeRef) parsed.GPSLatitudeRef = binaryParsed.GPSLatitudeRef;
+                    if (binaryParsed.GPSLongitudeRef && !parsed.GPSLongitudeRef) parsed.GPSLongitudeRef = binaryParsed.GPSLongitudeRef;
+                    Object.keys(binaryParsed).forEach(k => {
+                        if (parsed[k] === undefined) parsed[k] = binaryParsed[k];
+                    });
+
+                    // Smart parser supporting DMS arrays, numeric strings, and DMS strings
+                    function toDecimal(val) {
+                        if (typeof val === 'number' && !isNaN(val)) return Math.abs(val);
+                        if (Array.isArray(val) && val.length >= 3) {
+                            return Math.abs(Number(val[0])) + Number(val[1]) / 60 + Number(val[2]) / 3600;
+                        }
+                        if (typeof val === 'string') {
+                            const nums = val.match(/[-+]?\d*\.?\d+/g);
+                            if (nums && nums.length >= 3) {
+                                return Math.abs(parseFloat(nums[0])) + parseFloat(nums[1]) / 60 + parseFloat(nums[2]) / 3600;
+                            }
+                            if (nums && nums.length === 1) {
+                                return Math.abs(parseFloat(nums[0]));
+                            }
+                        }
+                        return null;
+                    }
+
+                    function toDMSString(val, ref) {
+                        const dec = toDecimal(val);
+                        if (dec === null) return null;
+                        const deg = Math.floor(dec);
+                        const minFloat = (dec - deg) * 60;
+                        const min = Math.floor(minFloat);
+                        const sec = ((minFloat - min) * 60).toFixed(2);
+                        const direction = (ref || '').toString().trim();
+                        return `${deg} deg ${min}' ${sec}" ${direction}`.trim();
+                    }
+
+                    const rawLat = toDMSString(parsed.GPSLatitude, parsed.GPSLatitudeRef);
+                    const rawLon = toDMSString(parsed.GPSLongitude, parsed.GPSLongitudeRef);
+                    
+                    const latDec = toDecimal(parsed.GPSLatitude);
+                    const lonDec = toDecimal(parsed.GPSLongitude);
+                    let highPrecisionRaw = null;
+                    if (latDec !== null && lonDec !== null) {
+                        highPrecisionRaw = `${latDec.toFixed(6)} ${parsed.GPSLatitudeRef || 'N'}, ${lonDec.toFixed(6)} ${parsed.GPSLongitudeRef || 'E'}`;
+                    }
+
+                    const hasGps = Boolean(latDec !== null && lonDec !== null);
+                    const rawPosition = highPrecisionRaw || (hasGps ? `${rawLat}, ${rawLon}` : null);
+
+                    // Toggle GPS Banners cleanly
+                    if (hasGps) {
+                        gpsFoundBanner.classList.remove('hidden');
+                        gpsNotFoundBanner.classList.add('hidden');
+                        gpsRawPreview.textContent = rawPosition;
+                    } else {
+                        gpsFoundBanner.classList.add('hidden');
+                        gpsNotFoundBanner.classList.remove('hidden');
+                        gpsRawPreview.textContent = '';
+                    }
+
+                    // Build Table Rows
+                    const rows = [];
+                    if (hasGps) {
+                        rows.push({ key: 'GPS Position (Raw)', value: rawPosition, highlight: true });
+                        if (rawLat) rows.push({ key: 'GPS Latitude', value: rawLat, highlight: true });
+                        if (rawLon) rows.push({ key: 'GPS Longitude', value: rawLon, highlight: true });
+                    }
+
+                    Object.keys(parsed).forEach(k => {
+                        if (['GPSLatitude', 'GPSLongitude', 'GPSLatitudeRef', 'GPSLongitudeRef'].includes(k)) return;
+                        const val = Array.isArray(parsed[k]) ? parsed[k].join(', ') : String(parsed[k]);
+                        rows.push({ key: k, value: val, highlight: k.startsWith('GPS') });
+                    });
+
+                    currentTags = rows;
+                    tagCount.textContent = `${rows.length} tags`;
+                    renderTable(rows);
+
+                    uploadSection.classList.add('hidden');
+                    resultsSection.classList.remove('hidden');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Error parsing image metadata.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
