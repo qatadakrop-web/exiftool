@@ -22,6 +22,7 @@ https://qatadakrop-web.github.io/ZF-Tool/
 
 #### (Task)
 1.Download the image of the product.
+
 2.Using ZF Tool find the following:
 The name of the exact location on the map where the photo was taken.
 The name of the device on which the photo was taken.
