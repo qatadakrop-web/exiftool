@@ -24,7 +24,10 @@ https://qatadakrop-web.github.io/ZF-Tool/
 1.Download the image of the product.
 
 2.Using ZF Tool find the following:
-The name of the exact location on the map where the photo was taken.
-The name of the device on which the photo was taken.
-the version of the device software.
+
+A. The name of the exact location on the map where the photo was taken.
+
+B. The name of the device on which the photo was taken.
+
+Z. the version of the device software.
 
