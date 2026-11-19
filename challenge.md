@@ -19,3 +19,11 @@ As a secure client-side web application developed for digital investigations, ZF
 
 
 https://qatadakrop-web.github.io/ZF-Tool/
+
+#### (Task)
+1.Download the image of the product.
+2.Using ZF Tool find the following:
+  1.The name of the exact location on the map where the photo was taken.
+  2.The name of the device on which the photo was taken.
+  3.the version of the device software.
+
