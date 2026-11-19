@@ -25,9 +25,9 @@ https://qatadakrop-web.github.io/ZF-Tool/
 
 2.Using ZF Tool find the following:
 
-A. The name of the exact location on the map where the photo was taken.
+   A. The name of the exact location on the map where the photo was taken.
 
-B. The name of the device on which the photo was taken.
+   B. The name of the device on which the photo was taken.
 
-Z. the version of the device software.
+   Z. the version of the device software.
 
